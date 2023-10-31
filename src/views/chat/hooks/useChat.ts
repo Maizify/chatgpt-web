@@ -2,6 +2,7 @@ import { useChatStore } from '@/store'
 
 export function useChat() {
   const chatStore = useChatStore()
+  chatStore.loadRemoteState()
 
   const getChatByUuidAndIndex = (uuid: number, index: number) => {
     return chatStore.getChatByUuidAndIndex(uuid, index)

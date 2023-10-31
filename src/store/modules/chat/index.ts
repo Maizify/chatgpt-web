@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
-import { getLocalState, setLocalState } from './helper'
+import { getLocalState, getRemoteState, setLocalState, setRemoteState } from './helper'
 import { router } from '@/router'
+
+let timer: ReturnType<typeof setTimeout>
 
 export const useChatStore = defineStore('chat-store', {
   state: (): Chat.ChatState => getLocalState(),
@@ -183,12 +185,31 @@ export const useChatStore = defineStore('chat-store', {
     },
 
     async reloadRoute(uuid?: number) {
-      this.recordState()
+      setLocalState(this.$state)
+      await setRemoteState(this.$state)
       await router.push({ name: 'Chat', params: { uuid } })
     },
 
     recordState() {
       setLocalState(this.$state)
+      this.delaySetRemoteState()
+    },
+
+    delaySetRemoteState() {
+      if (timer)
+        clearTimeout(timer)
+
+      timer = setTimeout(() => {
+        setRemoteState(this.$state)
+      }, 500)
+    },
+
+    async loadRemoteState() {
+      const state = await getRemoteState()
+      if (state) {
+        this.$patch(state)
+        setLocalState(this.$state)
+      }
     },
   },
 })

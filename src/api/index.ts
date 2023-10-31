@@ -64,3 +64,17 @@ export function fetchVerify<T>(token: string) {
     data: { token },
   })
 }
+
+export function getStorage<T>(key: string) {
+  return post<T>({
+    url: '/getStorage',
+    data: { key },
+  })
+}
+
+export function setStorage<T>(key: string, data: any, expire?: number | null) {
+  return post<T>({
+    url: 'setStorage',
+    data: { key, data, expire },
+  })
+}

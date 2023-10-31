@@ -45,6 +45,7 @@ const searchValue = ref<string>('')
 const { isMobile } = useBasicLayout()
 
 const promptStore = usePromptStore()
+promptStore.loadRemoteState()
 
 // Prompt在线导入推荐List,根据部署者喜好进行修改(assets/recommend.json)
 const promptRecommendList = PromptRecommend

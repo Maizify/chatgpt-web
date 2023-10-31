@@ -1,3 +1,5 @@
+import * as path from 'path'
+import { mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
 import express from 'express'
 import type { RequestProps } from './types'
 import type { ChatMessage } from './chatgpt'
@@ -79,6 +81,52 @@ router.post('/verify', async (req, res) => {
   }
   catch (error) {
     res.send({ status: 'Fail', message: error.message, data: null })
+  }
+})
+
+const StorageConfig = {
+  DEFAULT_CACHE_TIME: 60 * 60 * 24 * 7,
+  dirPath: path.join(__dirname, '/../../.storage/'),
+}
+router.post('/setStorage', async (req, res) => {
+  try {
+    const { key, data, expire } = req.body as { key: string; data: any; expire?: number | null }
+    const storageData = {
+      data,
+      expire: expire !== null ? new Date().getTime() + (expire === undefined ? StorageConfig.DEFAULT_CACHE_TIME : expire) * 1000 : null,
+    }
+    const filePath = path.join(StorageConfig.dirPath, `${key}.json`)
+    mkdirSync(StorageConfig.dirPath, { recursive: true })
+    writeFileSync(filePath, JSON.stringify(storageData), { encoding: 'utf8' })
+    res.send({ status: 'Success', message: '' })
+  }
+  catch (error) {
+    res.write(JSON.stringify(error))
+  }
+  finally {
+    res.end()
+  }
+})
+router.post('/getStorage', async (req, res) => {
+  try {
+    let retData = {}
+    const { key } = req.body as { key: string }
+    const filePath = path.join(StorageConfig.dirPath, `${key}.json`)
+    const stats = statSync(filePath) // when file is not exist, it will throw error
+    if (stats) {
+      const storageData = readFileSync(filePath, { encoding: 'utf8' })
+      const { data, expire } = JSON.parse(storageData) as { data: any; expire: number | null }
+      if (expire === null || expire >= Date.now())
+        retData = data
+    }
+    res.send({ status: 'Success', message: '', data: retData })
+  }
+  catch (error) {
+    // console.log(error)
+    res.send({ status: 'Fail', message: JSON.stringify(error) })
+  }
+  finally {
+    res.end()
   }
 })
 
