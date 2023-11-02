@@ -11,6 +11,11 @@ import { isNotEmptyString } from './utils/is'
 const app = express()
 const router = express.Router()
 
+let port = 3002
+if (process.env.NODE_ENV === 'production') {
+  port = 13034
+  app.use('/', express.static(path.join(__dirname, '/../../dist')))
+}
 app.use(express.static('public'))
 app.use(express.json())
 
@@ -134,4 +139,5 @@ app.use('', router)
 app.use('/api', router)
 app.set('trust proxy', 1)
 
-app.listen(3002, () => globalThis.console.log('Server is running on port 3002'))
+// globalThis.console.log(process.env)
+app.listen(port, () => globalThis.console.log(`Server is running on port ${port}`))
